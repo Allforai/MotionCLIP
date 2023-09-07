@@ -41,7 +41,7 @@ def add_shadow(img, shadow=15):
 
 
 def load_anim(path, timesize=None):
-    data = np.array(imageio.mimread(path, memtest=False))[..., :3]
+    data = np.array(imageio.mimread(path, memtest=False)[:][:])[..., :3]
     if timesize is None:
         return data
     # take the last frame and put shadow repeat the last frame but with a little shadow
@@ -123,8 +123,8 @@ def plot_3d_motion(motion, length, save_path, params, title="", interval=50, pal
         kinematic_tree = None
 
     def update(index):
-        ax.lines = []
-        ax.collections = []
+        # ax.lines = []
+        # ax.collections = []
         if kinematic_tree is not None:
             for chain, color in zip(kinematic_tree, colors):
                 ax.plot(motion[chain, 0, index],
@@ -143,9 +143,9 @@ def plot_3d_motion(motion, length, save_path, params, title="", interval=50, pal
 
     plt.tight_layout()
     # pillow have problem droping frames
-    # ani.save(save_path, writer='ffmpeg', fps=1000/interval)
+    ani.save(save_path, writer='ffmpeg', fps=1000/interval)
     # ani.save(save_path, writer='avconv', fps=1000/interval)
-    ani.save(save_path, writer='pillow', fps=1000/interval)
+    # ani.save(save_path, writer='pillow', fps=1000/interval)
     plt.close()
 
 

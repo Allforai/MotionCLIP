@@ -1,7 +1,8 @@
 import os
 import sys
 sys.path.append('.')
-
+import pydevd_pycharm
+pydevd_pycharm.settrace('10.8.31.54', port=17777, stdoutToServer=True, stderrToServer=True)
 import matplotlib.pyplot as plt
 import torch
 from src.utils.get_model_and_data import get_model_and_data
