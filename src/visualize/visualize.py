@@ -229,13 +229,13 @@ def generate_by_video_sequences(visualization, label_to_action_name, params, nat
     return frames
 
 
-def viz_clip_text(model, text_grid, epoch, params, folder):
+def viz_clip_text(model, text_grid, grid_keyid, epoch, params, folder):
     """ Generate & viz samples """
 
     # visualize with joints3D
-    model.outputxyz = True
+    model.outputxyz = False
 
-    print(f"Visualization of the epoch {epoch}")
+    # print(f"Visualization of the epoch {epoch}")
 
     # noise_same_action = params["noise_same_action"]
     # noise_diff_action = params["noise_diff_action"]
@@ -244,10 +244,11 @@ def viz_clip_text(model, text_grid, epoch, params, folder):
     figname = params["figname"].format(epoch)
 
     classes = np.array(text_grid, dtype=str)
-    h, w = classes.shape
+    w = 1
+    h = classes.shape[0]
 
     texts = classes.reshape([-1])
-    clip_tokens = clip.tokenize(texts).to(params['device'])
+    clip_tokens = clip.tokenize(texts, truncate=True).to(params['device'])
     clip_features = model.clip_model.encode_text(clip_tokens).float().unsqueeze(0)
 
     gendurations = torch.ones((h*w, 1), dtype=int) * params['num_frames']
@@ -260,29 +261,35 @@ def viz_clip_text(model, text_grid, epoch, params, folder):
                                     is_amass=True,
                                     is_clip_features=True)
         generation['y'] = texts
+    for keyid, motion in zip(grid_keyid, generation['output']):
+        padding = np.zeros((1, 3, 60))
+        motion = motion[1:23].reshape(1, -1, 60).cpu().numpy()
+        motion = np.concatenate((padding, motion), axis=-2)
+        os.makedirs(os.path.join(folder, keyid))
+        np.save(os.path.join(folder, keyid, 'motion.npy'), motion)
 
-    for key, val in generation.items():
-        if len(generation[key].shape) == 1:
-            generation[key] = val.reshape(h, w)
-        else:
-            generation[key] = val.reshape(h, w, *val.shape[1:])
+    # for key, val in generation.items():
+    #     if len(generation[key].shape) == 1:
+    #         generation[key] = val.reshape(h, w)
+    #     else:
+    #         generation[key] = val.reshape(h, w, *val.shape[1:])
 
-    f_name = params['input_file']
-    if os.path.isfile(params['input_file']):
-        f_name = os.path.basename(params['input_file'].replace('.txt', ''))
-    finalpath = os.path.join(folder, 'clip_text_{}_{}'.format(f_name, 'trans_' if params['vertstrans'] else '') + figname + ".gif")
-    tmp_path = os.path.join(folder, f"clip_text_subfigures_{figname}")
-    os.makedirs(tmp_path, exist_ok=True)
+    # f_name = params['input_file']
+    # if os.path.isfile(params['input_file']):
+    #     f_name = os.path.basename(params['input_file'].replace('.txt', ''))
+    # finalpath = os.path.join(folder, 'clip_text_{}_{}'.format(f_name, 'trans_' if params['vertstrans'] else '') + figname + ".gif")
+    # tmp_path = os.path.join(folder, f"clip_text_subfigures_{figname}")
+    # os.makedirs(tmp_path, exist_ok=True)
 
     # save_pkl(generation['output'], generation['output_xyz'], texts, finalpath.replace('.gif', '.pkl'))
 
-    print("Generate the videos..")
-    frames = generate_by_video({}, {}, generation,
-                               lambda x: str(x), params, w, h, tmp_path, mode='text')
+    # print("Generate the videos..")
+    # frames = generate_by_video({}, {}, generation,
+    #                            lambda x: str(x), params, w, h, tmp_path, mode='text')
 
 
-    print(f"Writing video [{finalpath}]")
-    imageio.mimsave(finalpath, frames, fps=params["fps"])
+    # print(f"Writing video [{finalpath}]")
+    # imageio.mimsave(finalpath, frames, duration=len(frames)/params["fps"])
 
 
 def viz_clip_interp(model, datasets, interp_csv, num_stops, epoch, params, folder):
@@ -291,7 +298,7 @@ def viz_clip_interp(model, datasets, interp_csv, num_stops, epoch, params, folde
     # visualize with joints3D
     model.outputxyz = True
 
-    print(f"Visualization of the epoch {epoch}")
+    # print(f"Visualization of the epoch {epoch}")
     figname = params["figname"].format(epoch)
     motion_collection = get_motion_text_mapping(datasets)
 

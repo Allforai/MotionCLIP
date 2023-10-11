@@ -10,7 +10,6 @@ from src.parser.visualize import parser
 from src.visualize.visualize import viz_clip_text, get_gpu_device
 from src.utils.misc import load_model_wo_clip
 import src.utils.fixseed  # noqa
-
 plt.switch_backend('agg')
 
 

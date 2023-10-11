@@ -41,7 +41,11 @@ def add_shadow(img, shadow=15):
 
 
 def load_anim(path, timesize=None):
-    data = np.array(imageio.mimread(path, memtest=False)[:][:])[..., :3]
+    # import pdb
+    # pdb.set_trace()
+    data = []
+    [data.append(imageio.mimread(path, memtest=False)[i][..., :3]) for i in range(len(imageio.mimread(path, memtest=False)))]
+    data = np.array(data)
     if timesize is None:
         return data
     # take the last frame and put shadow repeat the last frame but with a little shadow
@@ -102,8 +106,8 @@ def plot_3d_motion(motion, length, save_path, params, title="", interval=50, pal
         motion = motion.numpy()
 
     # # invert axis
-    # motion[:, 1, :] = -motion[:, 1, :]
-    # motion[:, 2, :] = -motion[:, 2, :]
+    motion[:, 1, :] = -motion[:, 1, :]
+    motion[:, 2, :] = -motion[:, 2, :]
     # this hack is not needed for amass
 
     """
